@@ -17,6 +17,7 @@ import { NewServiceRequestScreen } from '../screens/client/NewServiceRequestScre
 import { ServiceRequestDetailScreen } from '../screens/client/ServiceRequestDetailScreen';
 import { ReviewScreen } from '../screens/client/ReviewScreen';
 import { NotificationsScreen } from '../screens/NotificationsScreen';
+import { EditProfileScreen } from '../screens/EditProfileScreen';
 
 // Professional Screens
 import { ProfessionalHomeScreen } from '../screens/professional/ProfessionalHomeScreen';
@@ -24,6 +25,8 @@ import { BuyCreditsScreen } from '../screens/professional/BuyCreditsScreen';
 import { LeadDetailScreen } from '../screens/professional/LeadDetailScreen';
 import { SendProposalScreen } from '../screens/professional/SendProposalScreen';
 import { ManageProfileScreen } from '../screens/professional/ManageProfileScreen';
+import { ManageCategoriesScreen } from '../screens/professional/ManageCategoriesScreen';
+import { ManageRegionsScreen } from '../screens/professional/ManageRegionsScreen';
 import { ChatListScreen } from '../screens/chat/ChatListScreen';
 import { ChatConversationScreen } from '../screens/chat/ChatConversationScreen';
 import { CheckoutStatusScreen } from '../screens/professional/CheckoutStatusScreen';
@@ -90,6 +93,11 @@ const ClientStack = () => (
       name="Notifications"
       component={NotificationsScreen}
       options={{ title: 'Notificações' }}
+    />
+    <Stack.Screen
+      name="EditProfile"
+      component={EditProfileScreen}
+      options={{ title: 'Editar Perfil' }}
     />
   </Stack.Navigator>
 );
@@ -178,6 +186,16 @@ const ProfessionalStack = () => (
       options={{ title: 'Gerir Perfil' }}
     />
     <Stack.Screen
+      name="ManageCategories"
+      component={ManageCategoriesScreen}
+      options={{ title: 'Categorias de Atuação' }}
+    />
+    <Stack.Screen
+      name="ManageRegions"
+      component={ManageRegionsScreen}
+      options={{ title: 'Zonas de Atendimento' }}
+    />
+    <Stack.Screen
       name="ProfessionalProfile"
       component={ProfileScreen}
       options={{ title: 'Meu Perfil Público' }}
@@ -196,6 +214,11 @@ const ProfessionalStack = () => (
       name="Notifications"
       component={NotificationsScreen}
       options={{ title: 'Notificações' }}
+    />
+    <Stack.Screen
+      name="EditProfile"
+      component={EditProfileScreen}
+      options={{ title: 'Editar Perfil' }}
     />
   </Stack.Navigator>
 );

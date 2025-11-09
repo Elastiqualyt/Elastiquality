@@ -11,6 +11,8 @@ interface AuthContextData {
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, name: string, userType: UserType) => Promise<void>;
   signOut: () => Promise<void>;
+  refreshUser: () => Promise<void>;
+  updateUserContext: (updates: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
@@ -123,6 +125,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setPushRegistered(false);
   };
 
+  const refreshUser = async () => {
+    const targetId = session?.user?.id || user?.id;
+    if (!targetId) return;
+    await loadUserData(targetId);
+  };
+
+  const updateUserContext = (updates: Partial<User>) => {
+    setUser((prev) => (prev ? { ...prev, ...updates } : prev));
+  };
+
   useEffect(() => {
     let cancelled = false;
     if (user?.id && !pushRegistered) {
@@ -152,6 +164,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         signIn,
         signUp,
         signOut,
+        refreshUser,
+        updateUserContext,
       }}
     >
       {children}

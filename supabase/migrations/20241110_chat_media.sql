@@ -143,30 +143,15 @@ BEGIN
   END IF;
 END $$;
 
-DO $$
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM storage.buckets WHERE name = 'chat-uploads'
-  ) THEN
-    PERFORM storage.create_bucket('chat-uploads', true);
-  END IF;
-END $$;
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('chat-uploads', 'chat-uploads', true)
+ON CONFLICT (id) DO NOTHING;
 
-DO $$
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM storage.buckets WHERE name = 'service-photos'
-  ) THEN
-    PERFORM storage.create_bucket('service-photos', true);
-  END IF;
-END $$;
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('service-photos', 'service-photos', true)
+ON CONFLICT (id) DO NOTHING;
 
-DO $$
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM storage.buckets WHERE name = 'portfolio-images'
-  ) THEN
-    PERFORM storage.create_bucket('portfolio-images', true);
-  END IF;
-END $$;
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('portfolio-images', 'portfolio-images', true)
+ON CONFLICT (id) DO NOTHING;
 

@@ -71,28 +71,30 @@
 - `src/components/ImageGallery.tsx`
 
 ### 6. Notificações Push
-- [ ] Configurar Firebase Cloud Messaging
-- [ ] Notificar novo lead para profissional
-- [ ] Notificar nova proposta para cliente
-- [ ] Notificar mensagens
-- [ ] Configurações de notificações
+- [x] Configurar Firebase Cloud Messaging
+- [x] Notificar novo lead para profissional
+- [x] Notificar nova proposta para cliente
+- [x] Notificar mensagens
+- [x] Configurações de notificações
 
-**Arquivos a criar:**
+**Arquivos atualizados/criados:**
 - `src/services/notifications.ts`
 - `src/screens/NotificationsScreen.tsx`
-- `src/screens/SettingsScreen.tsx`
+- `supabase/functions/notify-event/index.ts`
 
 ### 7. Perfil e Configurações
-- [ ] Editar perfil do usuário
-- [ ] Alterar senha
-- [ ] Configurar categorias (profissional)
-- [ ] Configurar regiões de atendimento (profissional)
-- [ ] Adicionar portfolio (profissional)
+- [x] Editar perfil do usuário
+- [x] Alterar senha
+- [x] Configurar categorias (profissional)
+- [x] Configurar regiões de atendimento (profissional)
+- [x] Adicionar portfolio (profissional)
 
-**Arquivos a criar:**
+**Arquivos criados/atualizados:**
 - `src/screens/EditProfileScreen.tsx`
 - `src/screens/professional/ManageCategoriesScreen.tsx`
 - `src/screens/professional/ManageRegionsScreen.tsx`
+- `src/screens/professional/ManageProfileScreen.tsx`
+- `src/navigation/AppNavigator.tsx`
 
 ### 8. Dashboard e Estatísticas
 - [ ] Dashboard do profissional (leads, conversões, gastos)

@@ -113,14 +113,24 @@ export const ClientHomeScreen = ({ navigation }: any) => {
       <View style={styles.header}>
         <Text style={styles.welcomeText}>Olá, {user?.name}!</Text>
         <Text style={styles.subtitle}>Seus pedidos de serviço</Text>
-        <Button
-          mode="outlined"
-          onPress={() => navigation.navigate('Notifications')}
-          textColor={colors.textLight}
-          style={styles.notificationsButton}
-        >
-          Preferências de notificações
-        </Button>
+        <View style={styles.actionButtons}>
+          <Button
+            mode="outlined"
+            onPress={() => navigation.navigate('EditProfile')}
+            textColor={colors.textLight}
+            style={styles.headerButton}
+          >
+            Editar perfil
+          </Button>
+          <Button
+            mode="outlined"
+            onPress={() => navigation.navigate('Notifications')}
+            textColor={colors.textLight}
+            style={styles.headerButton}
+          >
+            Preferências de notificações
+          </Button>
+        </View>
       </View>
 
       {requests.length === 0 && !loading ? (
@@ -233,8 +243,13 @@ const styles = StyleSheet.create({
     bottom: 0,
     backgroundColor: colors.primary,
   },
-  notificationsButton: {
+  actionButtons: {
     marginTop: 12,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  headerButton: {
     borderColor: colors.textLight,
   },
 });

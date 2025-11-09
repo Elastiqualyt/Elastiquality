@@ -162,6 +162,14 @@ export const ProfessionalHomeScreen = ({ navigation }: any) => {
           Comprar Créditos
         </Button>
         <Button
+          mode="outlined"
+          onPress={() => navigation.navigate('EditProfile')}
+          style={styles.editProfileButton}
+          textColor={colors.textLight}
+        >
+          Editar dados pessoais
+        </Button>
+        <Button
           mode="contained"
           onPress={() => navigation.navigate('ManageProfile')}
           style={styles.manageButton}
@@ -230,6 +238,10 @@ const styles = StyleSheet.create({
   },
   buyButton: {
     borderColor: colors.textLight,
+  },
+  editProfileButton: {
+    borderColor: colors.textLight,
+    marginTop: 8,
   },
   manageButton: {
     marginTop: 8,

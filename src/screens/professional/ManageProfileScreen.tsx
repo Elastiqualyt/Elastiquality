@@ -1,14 +1,13 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import { Button, Card, Chip, Text, TextInput, HelperText } from 'react-native-paper';
+import { Button, Card, Chip, HelperText, Text, TextInput } from 'react-native-paper';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../config/supabase';
 import { colors } from '../../theme/colors';
-import { SERVICE_CATEGORY_GROUPS, ALL_SERVICES } from '../../constants/categories';
-import { LocationPicker } from '../../components/LocationPicker';
-import { LocationSelection, formatLocationSelection } from '../../services/locations';
+import { ALL_SERVICES } from '../../constants/categories';
 import { ImagePicker, ImagePickerItem } from '../../components/ImagePicker';
 import { uploadPortfolioImage } from '../../services/storage';
+import { useFocusEffect } from '@react-navigation/native';
 
 const MAX_PORTFOLIO_ITEMS = 10;
 
@@ -23,15 +22,8 @@ export const ManageProfileScreen = ({ navigation }: any) => {
   const [portfolioItems, setPortfolioItems] = useState<ImagePickerItem[]>([]);
   const [credits, setCredits] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const [serviceAreaSelection, setServiceAreaSelection] = useState<LocationSelection>({});
-  const [serviceAreaError, setServiceAreaError] = useState<string | null>(null);
 
-  const sortedGroups = useMemo(
-    () => SERVICE_CATEGORY_GROUPS.map((group) => ({ name: group.name, services: [...group.services] })),
-    [],
-  );
-
-  const loadProfile = async () => {
+  const loadProfile = useCallback(async () => {
     if (!user?.id) return;
 
     try {
@@ -48,75 +40,43 @@ export const ManageProfileScreen = ({ navigation }: any) => {
         const storedServices: string[] = Array.isArray(data.categories) ? data.categories : [];
         const validServices = storedServices.filter((service) => ALL_SERVICES.includes(service));
         setSelectedServices(validServices);
-        setSelectedRegions(data.regions || []);
+        setSelectedRegions(Array.isArray(data.regions) ? data.regions : []);
         setDescription(data.description || '');
         const portfolioList: string[] = Array.isArray(data.portfolio) ? data.portfolio : [];
         setPortfolioItems(portfolioList.map((uri) => ({ uri, local: false })));
         setCredits(data.credits ?? 0);
       }
+      setError(null);
     } catch (err: any) {
       console.error('Erro ao carregar perfil profissional:', err);
-      setError(err.message || 'Não foi possível carregar os dados.');
+      setError(err.message || 'Não foi possível carregar os dados do perfil.');
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    loadProfile();
   }, [user?.id]);
 
-  const toggleService = (serviceName: string) => {
-    setSelectedServices((prev) =>
-      prev.includes(serviceName) ? prev.filter((entry) => entry !== serviceName) : [...prev, serviceName],
-    );
-  };
-
-  const handleRemoveServiceArea = (region: string) => {
-    setSelectedRegions((prev) => prev.filter((item) => item !== region));
-  };
-
-  const handleAddServiceArea = () => {
-    const label = formatLocationSelection(serviceAreaSelection);
-
-    if (!serviceAreaSelection.districtId) {
-      setServiceAreaError('Selecione pelo menos o distrito.');
-      return;
-    }
-
-    if (!label) {
-      setServiceAreaError('Seleção incompleta. Escolha distrito, concelho e freguesia se disponível.');
-      return;
-    }
-
-    if (selectedRegions.includes(label)) {
-      setServiceAreaError('Esta zona de atendimento já foi adicionada.');
-      return;
-    }
-
-    setSelectedRegions((prev) => [...prev, label]);
-    setServiceAreaSelection({});
-    setServiceAreaError(null);
-  };
+  useFocusEffect(
+    useCallback(() => {
+      loadProfile();
+    }, [loadProfile]),
+  );
 
   const handleSave = async () => {
     if (!user?.id) return;
 
     if (selectedServices.length === 0) {
-      setError('Selecione pelo menos um serviço.');
+      setError('Defina pelo menos uma categoria na opção "Gerir categorias".');
       return;
     }
 
     if (selectedRegions.length === 0) {
-      setError('Selecione pelo menos uma zona de atendimento.');
-      setServiceAreaError('Adicione pelo menos uma zona de atendimento.');
+      setError('Adicione pelo menos uma zona de atendimento em "Gerir zonas de atendimento".');
       return;
     }
 
     try {
       setSaving(true);
       setError(null);
-      setServiceAreaError(null);
 
       if (portfolioItems.length > MAX_PORTFOLIO_ITEMS) {
         throw new Error(`Limite máximo de ${MAX_PORTFOLIO_ITEMS} itens de portfólio atingido.`);
@@ -125,7 +85,7 @@ export const ManageProfileScreen = ({ navigation }: any) => {
       const existingPortfolio = portfolioItems.filter((item) => !item.local).map((item) => item.uri);
       const newImages = portfolioItems.filter((item) => item.local);
 
-      const uploadedImages = [];
+      const uploadedImages: string[] = [];
       for (const image of newImages) {
         const upload = await uploadPortfolioImage(user.id, image.uri);
         uploadedImages.push(upload.publicUrl);
@@ -146,9 +106,8 @@ export const ManageProfileScreen = ({ navigation }: any) => {
 
       if (updateError) throw updateError;
 
-      alert('Perfil atualizado com sucesso!');
       setPortfolioItems(finalPortfolio.map((uri) => ({ uri, local: false })));
-      navigation.goBack();
+      alert('Descrição e portfólio atualizados com sucesso!');
     } catch (err: any) {
       console.error('Erro ao atualizar perfil profissional:', err);
       setError(err.message || 'Não foi possível atualizar o perfil.');
@@ -161,80 +120,77 @@ export const ManageProfileScreen = ({ navigation }: any) => {
     <ScrollView contentContainerStyle={styles.container}>
       <Card style={styles.card}>
         <Card.Content style={{ gap: 16 }}>
-          <Text style={styles.title}>Gerenciar Perfil Profissional</Text>
+          <Text style={styles.title}>Gestão do Perfil Profissional</Text>
 
           {loading ? (
             <Text style={styles.loading}>A carregar dados...</Text>
           ) : (
             <>
               <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Dados pessoais</Text>
+                <Text style={styles.sectionSubtitle}>
+                  Mantenha os seus dados de contacto atualizados para facilitar a comunicação com clientes.
+                </Text>
+                <Button
+                  mode="outlined"
+                  onPress={() => navigation.navigate('EditProfile')}
+                  textColor={colors.professional}
+                  style={styles.sectionButton}
+                >
+                  Editar dados pessoais
+                </Button>
+              </View>
+
+              <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Categorias de atuação</Text>
-                <Text style={styles.sectionSubtitle}>Selecione os serviços que oferece</Text>
-                <View style={styles.serviceGroups}>
-                  {sortedGroups.map((group) => (
-                    <View key={group.name} style={styles.groupBlock}>
-                      <Text style={styles.groupTitle}>{group.name}</Text>
-                      <View style={styles.chipGroup}>
-                        {group.services.map((service) => (
-                          <Chip
-                            key={service}
-                            selected={selectedServices.includes(service)}
-                            onPress={() => toggleService(service)}
-                            style={selectedServices.includes(service) ? styles.chipSelected : styles.chip}
-                            textStyle={selectedServices.includes(service) ? styles.chipTextSelected : undefined}
-                          >
-                            {service}
-                          </Chip>
-                        ))}
-                      </View>
-                    </View>
-                  ))}
+                <Text style={styles.sectionSubtitle}>
+                  Estas categorias definem os leads que serão sugeridos para si.
+                </Text>
+                <View style={styles.chipGroup}>
+                  {selectedServices.length === 0 ? (
+                    <Text style={styles.emptyText}>Nenhuma categoria definida.</Text>
+                  ) : (
+                    selectedServices.map((service) => (
+                      <Chip key={service} style={styles.chipSelected} textStyle={styles.chipTextSelected}>
+                        {service}
+                      </Chip>
+                    ))
+                  )}
                 </View>
+                <Button
+                  mode="outlined"
+                  onPress={() => navigation.navigate('ManageCategories')}
+                  textColor={colors.professional}
+                  style={styles.sectionButton}
+                >
+                  Gerir categorias
+                </Button>
               </View>
 
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Zonas de atendimento</Text>
                 <Text style={styles.sectionSubtitle}>
-                  Utilize a pesquisa para localizar freguesias, concelhos ou distritos onde atua.
+                  Reveja as localizações onde está disponível para prestar serviços.
                 </Text>
-                <LocationPicker
-                  value={serviceAreaSelection}
-                  onChange={(selection) => {
-                    setServiceAreaSelection(selection);
-                    setServiceAreaError(null);
-                  }}
-                  error={serviceAreaError || undefined}
-                  requiredLevel="district"
-                  caption="Selecione um distrito, podendo detalhar até ao concelho ou freguesia."
-                />
-                <Button
-                  mode="outlined"
-                  icon="map-marker-plus"
-                  onPress={handleAddServiceArea}
-                  style={styles.addAreaButton}
-                  textColor={colors.professional}
-                >
-                  Adicionar zona
-                </Button>
-                <HelperText type="info">
-                  Toque numa zona adicionada para removê-la. Adicione quantas forem necessárias.
-                </HelperText>
                 <View style={styles.chipGroup}>
                   {selectedRegions.length === 0 ? (
-                    <Text style={styles.emptyText}>Ainda não adicionou zonas de atendimento.</Text>
+                    <Text style={styles.emptyText}>Nenhuma zona de atendimento definida.</Text>
                   ) : (
                     selectedRegions.map((region) => (
-                      <Chip
-                        key={region}
-                        onPress={() => handleRemoveServiceArea(region)}
-                        mode="outlined"
-                        style={styles.regionChip}
-                      >
+                      <Chip key={region} mode="outlined" style={styles.regionChip}>
                         {region}
                       </Chip>
                     ))
                   )}
                 </View>
+                <Button
+                  mode="outlined"
+                  onPress={() => navigation.navigate('ManageRegions')}
+                  textColor={colors.professional}
+                  style={styles.sectionButton}
+                >
+                  Gerir zonas de atendimento
+                </Button>
               </View>
 
               <View style={styles.section}>
@@ -245,7 +201,7 @@ export const ManageProfileScreen = ({ navigation }: any) => {
                   numberOfLines={5}
                   value={description}
                   onChangeText={setDescription}
-                  placeholder="Fale sobre sua experiência, certificações e diferenciais."
+                  placeholder="Fale sobre a sua experiência, certificações e diferenciais."
                   style={styles.textInput}
                 />
               </View>
@@ -253,7 +209,7 @@ export const ManageProfileScreen = ({ navigation }: any) => {
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Portfólio</Text>
                 <Text style={styles.sectionSubtitle}>
-                  Adicione imagens dos seus trabalhos (até {MAX_PORTFOLIO_ITEMS}). Toque numa imagem para removê-la.
+                  Adicione imagens recentes dos seus trabalhos (máximo de {MAX_PORTFOLIO_ITEMS} itens).
                 </Text>
                 <ImagePicker
                   images={portfolioItems}
@@ -281,7 +237,7 @@ export const ManageProfileScreen = ({ navigation }: any) => {
                   textColor={colors.professional}
                   style={styles.viewProfileButton}
                 >
-                  Ver avaliações públicas
+                  Ver perfil público
                 </Button>
                 <Button
                   mode="outlined"
@@ -289,22 +245,24 @@ export const ManageProfileScreen = ({ navigation }: any) => {
                   textColor={colors.professional}
                   style={styles.viewProfileButton}
                 >
-                  Configurar notificações
+                  Preferências de notificações
                 </Button>
               </View>
 
-              {error ? <Text style={styles.error}>{error}</Text> : null}
+              {error ? <HelperText type="error">{error}</HelperText> : null}
 
-              <Button
-                mode="contained"
-                onPress={handleSave}
-                loading={saving}
-                disabled={saving}
-                buttonColor={colors.professional}
-                style={styles.saveButton}
-              >
-                Guardar alterações
-              </Button>
+              <View style={styles.saveRow}>
+                <Button
+                  mode="contained"
+                  onPress={handleSave}
+                  loading={saving}
+                  disabled={saving}
+                  buttonColor={colors.professional}
+                  style={styles.saveButton}
+                >
+                  Guardar descrição e portfólio
+                </Button>
+              </View>
             </>
           )}
         </Card.Content>
@@ -347,12 +305,6 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 8,
   },
-  serviceGroups: {
-    gap: 16,
-  },
-  chip: {
-    borderColor: colors.border,
-  },
   chipSelected: {
     backgroundColor: colors.professional,
   },
@@ -364,11 +316,6 @@ const styles = StyleSheet.create({
   },
   textInput: {
     backgroundColor: colors.background,
-  },
-  addAreaButton: {
-    alignSelf: 'flex-start',
-    borderRadius: 12,
-    marginTop: 12,
   },
   emptyText: {
     fontSize: 14,
@@ -390,8 +337,12 @@ const styles = StyleSheet.create({
   saveButton: {
     borderRadius: 12,
   },
-  error: {
-    color: colors.error,
+  saveRow: {
+    alignItems: 'flex-start',
+  },
+  sectionButton: {
+    alignSelf: 'flex-start',
+    borderRadius: 12,
   },
 });
 

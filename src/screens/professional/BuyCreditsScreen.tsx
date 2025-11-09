@@ -61,9 +61,9 @@ export const BuyCreditsScreen = ({ navigation }: any) => {
         process.env.EXPO_PUBLIC_STRIPE_CANCEL_URL || buildReturnUrl('/checkout/cancelled');
 
       const checkoutUrl = await startCheckout({
-        packageId: pkg.id,
-        successUrl,
-        cancelUrl,
+          packageId: pkg.id,
+          successUrl,
+          cancelUrl,
       });
 
       if (Platform.OS === 'web') {
