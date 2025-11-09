@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, StyleSheet, FlatList, RefreshControl } from 'react-native';
-import { Text, Card, FAB, Chip } from 'react-native-paper';
+import { Text, Card, FAB, Chip, Button } from 'react-native-paper';
 import { useAuth } from '../../contexts/AuthContext';
 import { colors } from '../../theme/colors';
 import { ServiceRequest } from '../../types';
@@ -113,6 +113,14 @@ export const ClientHomeScreen = ({ navigation }: any) => {
       <View style={styles.header}>
         <Text style={styles.welcomeText}>Olá, {user?.name}!</Text>
         <Text style={styles.subtitle}>Seus pedidos de serviço</Text>
+        <Button
+          mode="outlined"
+          onPress={() => navigation.navigate('Notifications')}
+          textColor={colors.textLight}
+          style={styles.notificationsButton}
+        >
+          Preferências de notificações
+        </Button>
       </View>
 
       {requests.length === 0 && !loading ? (
@@ -224,6 +232,10 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: colors.primary,
+  },
+  notificationsButton: {
+    marginTop: 12,
+    borderColor: colors.textLight,
   },
 });
 

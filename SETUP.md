@@ -122,10 +122,29 @@ No Supabase:
 ### Configurar Storage para Fotos
 
 1. No Supabase, vá em **Storage**
-2. Crie um bucket chamado `service-photos`
+2. Crie os buckets:
+   - `service-photos` (imagens submetidas pelos clientes)
+   - `portfolio-images` (galeria dos profissionais)
+   - `chat-uploads` (anexos compartilhados no chat)
 3. Configure as políticas de acesso:
    - Upload: apenas usuários autenticados
    - Download: público
+
+### Configurar Notificações Push (Expo + FCM/APNs)
+
+1. No Firebase Console, crie um projeto ou reutilize um existente.
+2. Gere os ficheiros de configuração:
+   - Android: `google-services.json`
+   - iOS: `GoogleService-Info.plist`
+3. Coloque esses ficheiros na raiz do projeto (já estão no `.gitignore`).
+4. No Firebase:
+   - Ative **Cloud Messaging**
+   - Registe o pacote Android `com.elastiquality.app`
+   - Registe o bundle iOS `com.elastiquality.app`
+5. No Expo:
+   - Certifique-se de que o plugin `expo-notifications` está configurado (já incluído em `app.json`).
+   - Para builds de produção, carregue as credenciais APNs/FCM com `expo credentials:manager`.
+6. Após login no app, confirme que um token aparece na tabela `device_tokens` do Supabase.
 
 ### Configurar Pagamentos (Stripe)
 

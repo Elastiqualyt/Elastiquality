@@ -10,6 +10,21 @@ export interface NotifyMessagePayload {
   contentPreview: string;
 }
 
+export interface NotifyLeadPayload {
+  professionalId: string;
+  category: string;
+  location: string;
+  leadId: string;
+  serviceRequestId: string;
+}
+
+export interface NotifyProposalPayload {
+  clientId: string;
+  professionalName: string;
+  serviceTitle: string;
+  serviceRequestId: string;
+}
+
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
@@ -36,6 +51,13 @@ export const registerForPushNotificationsAsync = async (userId: string) => {
     return null;
   }
 
+  if (Platform.OS === 'android') {
+    await Notifications.setNotificationChannelAsync('default', {
+      name: 'Padrão',
+      importance: Notifications.AndroidImportance.MAX,
+    });
+  }
+
   const pushToken = (await Notifications.getExpoPushTokenAsync()).data;
 
   const { error } = await supabase
@@ -58,15 +80,27 @@ export const registerForPushNotificationsAsync = async (userId: string) => {
   return pushToken;
 };
 
-export const notifyMessage = async (payload: NotifyMessagePayload) => {
+const notifyEvent = async ({
+  recipientId,
+  title,
+  body,
+  type,
+  data,
+}: {
+  recipientId: string;
+  title: string;
+  body: string;
+  type: 'chat' | 'leads' | 'proposals' | string;
+  data?: Record<string, unknown>;
+}) => {
   try {
-    const { error } = await supabase.functions.invoke('notify-message', {
+    const { error } = await supabase.functions.invoke('notify-event', {
       body: {
-        conversationId: payload.conversationId,
-        senderId: payload.senderId,
-        senderName: payload.senderName,
-        recipientId: payload.recipientId,
-        contentPreview: payload.contentPreview,
+        recipientId,
+        title,
+        body,
+        type,
+        data,
       },
     });
 
@@ -74,7 +108,45 @@ export const notifyMessage = async (payload: NotifyMessagePayload) => {
       console.warn('Erro ao solicitar notificação:', error);
     }
   } catch (err) {
-    console.warn('Não foi possível invocar notify-message:', err);
+    console.warn('Não foi possível invocar notify-event:', err);
   }
+};
+
+export const notifyMessage = async (payload: NotifyMessagePayload) => {
+  await notifyEvent({
+    recipientId: payload.recipientId,
+    title: `${payload.senderName} enviou uma nova mensagem`,
+    body: payload.contentPreview,
+    type: 'chat',
+    data: {
+      conversationId: payload.conversationId,
+    },
+  });
+};
+
+export const notifyLeadAvailable = async (payload: NotifyLeadPayload) => {
+  await notifyEvent({
+    recipientId: payload.professionalId,
+    title: 'Novo pedido disponível',
+    body: `${payload.category} em ${payload.location}`,
+    type: 'leads',
+    data: {
+      leadId: payload.leadId,
+      serviceRequestId: payload.serviceRequestId,
+      category: payload.category,
+    },
+  });
+};
+
+export const notifyProposalSubmitted = async (payload: NotifyProposalPayload) => {
+  await notifyEvent({
+    recipientId: payload.clientId,
+    title: `${payload.professionalName} enviou uma proposta`,
+    body: `Veja os detalhes para o pedido "${payload.serviceTitle}".`,
+    type: 'proposals',
+    data: {
+      serviceRequestId: payload.serviceRequestId,
+    },
+  });
 };
 

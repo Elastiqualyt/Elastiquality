@@ -9,6 +9,7 @@ import { LocationPicker } from '../../components/LocationPicker';
 import { LocationSelection, formatLocationSelection } from '../../services/locations';
 import { ImagePicker, ImagePickerItem } from '../../components/ImagePicker';
 import { uploadServiceImage } from '../../services/storage';
+import { notifyLeadAvailable } from '../../services/notifications';
 
 export const NewServiceRequestScreen = ({ navigation }: any) => {
   const { user } = useAuth();
@@ -71,7 +72,7 @@ export const NewServiceRequestScreen = ({ navigation }: any) => {
 
       // Criar lead automaticamente
       const leadCost = calculateLeadCost(category);
-      const { error: leadError } = await supabase
+      const { data: leadRecord, error: leadError } = await supabase
         .from('leads')
         .insert({
           service_request_id: serviceRequest.id,
@@ -79,9 +80,30 @@ export const NewServiceRequestScreen = ({ navigation }: any) => {
           cost: leadCost,
           location: locationLabel,
           description: `${title} - ${description.substring(0, 100)}`,
-        });
+        })
+        .select('id')
+        .single();
 
       if (leadError) throw leadError;
+
+      const { data: professionals } = await supabase
+        .from('professionals')
+        .select('id, categories')
+        .contains('categories', [category]);
+
+      if (professionals && professionals.length > 0) {
+        await Promise.all(
+          professionals.map((professional) =>
+            notifyLeadAvailable({
+              professionalId: professional.id,
+              category,
+              location: locationLabel,
+              leadId: leadRecord.id,
+              serviceRequestId: serviceRequest.id,
+            }),
+          ),
+        );
+      }
 
       alert('Pedido criado com sucesso! Aguarde propostas dos profissionais.');
       setLocationSelection({});

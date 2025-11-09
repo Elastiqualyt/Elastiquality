@@ -48,7 +48,7 @@ export const SendProposalScreen: React.FC<SendProposalScreenProps> = ({ navigati
     try {
       const { data: requestStatus, error: requestError } = await supabase
         .from('service_requests')
-        .select('status')
+        .select('status, client_id, title')
         .eq('id', serviceRequestId)
         .maybeSingle();
 
@@ -71,6 +71,13 @@ export const SendProposalScreen: React.FC<SendProposalScreenProps> = ({ navigati
       });
 
       if (insertError) throw insertError;
+
+      await notifyProposalSubmitted({
+        clientId: requestStatus.client_id,
+        professionalName: user.name,
+        serviceTitle: requestStatus.title,
+        serviceRequestId,
+      });
 
       alert('Proposta enviada com sucesso!');
       navigation.navigate('LeadDetail', { leadId, serviceRequestId, refresh: Date.now() });

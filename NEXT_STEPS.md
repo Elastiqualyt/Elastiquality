@@ -60,10 +60,10 @@
 - `src/screens/professional/SendProposalScreen.tsx`
 
 ### 5. Upload de Fotos
-- [ ] Upload de fotos ao criar pedido
-- [ ] Galeria de fotos do pedido
-- [ ] Portfolio do profissional
-- [ ] Compressão de imagens
+- [x] Upload de fotos ao criar pedido
+- [x] Galeria de fotos do pedido
+- [x] Portfolio do profissional
+- [x] Compressão de imagens
 
 **Arquivos a criar:**
 - `src/services/storage.ts`

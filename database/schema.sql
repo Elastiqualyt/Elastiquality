@@ -9,7 +9,8 @@ CREATE TABLE IF NOT EXISTS public.users (
   phone TEXT,
   user_type TEXT NOT NULL CHECK (user_type IN ('client', 'professional')),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  notification_preferences JSONB DEFAULT '{"chat": true, "leads": true, "proposals": true}'::jsonb
 );
 
 -- Tabela de profissionais (dados adicionais)

@@ -283,6 +283,14 @@ export const ManageProfileScreen = ({ navigation }: any) => {
                 >
                   Ver avaliações públicas
                 </Button>
+                <Button
+                  mode="outlined"
+                  onPress={() => navigation.navigate('Notifications')}
+                  textColor={colors.professional}
+                  style={styles.viewProfileButton}
+                >
+                  Configurar notificações
+                </Button>
               </View>
 
               {error ? <Text style={styles.error}>{error}</Text> : null}

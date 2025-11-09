@@ -14,7 +14,8 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.elastiquality.app"
+      "bundleIdentifier": "com.elastiquality.app",
+      "googleServicesFile": "./GoogleService-Info.plist"
     },
     "android": {
       "adaptiveIcon": {
@@ -23,7 +24,8 @@
       },
       "package": "com.elastiquality.app",
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "favicon": "./assets/images/favicon-32x32.png",
@@ -32,6 +34,16 @@
       "description": "Conectando clientes a profissionais de serviços locais",
       "themeColor": "#2f61a6",
       "backgroundColor": "#ffffff"
-    }
+    },
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/icon-192x192.png",
+          "color": "#2f61a6",
+          "sounds": []
+        }
+      ]
+    ]
   }
 }

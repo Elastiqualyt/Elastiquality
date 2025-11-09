@@ -16,6 +16,7 @@ import { ClientHomeScreen } from '../screens/client/ClientHomeScreen';
 import { NewServiceRequestScreen } from '../screens/client/NewServiceRequestScreen';
 import { ServiceRequestDetailScreen } from '../screens/client/ServiceRequestDetailScreen';
 import { ReviewScreen } from '../screens/client/ReviewScreen';
+import { NotificationsScreen } from '../screens/NotificationsScreen';
 
 // Professional Screens
 import { ProfessionalHomeScreen } from '../screens/professional/ProfessionalHomeScreen';
@@ -84,6 +85,11 @@ const ClientStack = () => (
       name="ProfessionalProfile"
       component={ProfileScreen}
       options={{ title: 'Perfil do Profissional' }}
+    />
+    <Stack.Screen
+      name="Notifications"
+      component={NotificationsScreen}
+      options={{ title: 'Notificações' }}
     />
   </Stack.Navigator>
 );
@@ -185,6 +191,11 @@ const ProfessionalStack = () => (
       name="CheckoutStatus"
       component={CheckoutStatusScreen}
       options={{ title: 'Compra de Créditos' }}
+    />
+    <Stack.Screen
+      name="Notifications"
+      component={NotificationsScreen}
+      options={{ title: 'Notificações' }}
     />
   </Stack.Navigator>
 );
