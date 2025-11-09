@@ -1,0 +1,37 @@
+{
+  "expo": {
+    "name": "Elastiquality",
+    "slug": "elastiquality",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon-512x512.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/images/logo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#2f61a6"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.elastiquality.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/icon-512x512.png",
+        "backgroundColor": "#2f61a6"
+      },
+      "package": "com.elastiquality.app",
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/images/favicon-32x32.png",
+      "name": "Elastiquality",
+      "shortName": "Elastiquality",
+      "description": "Conectando clientes a profissionais de serviços locais",
+      "themeColor": "#2f61a6",
+      "backgroundColor": "#ffffff"
+    }
+  }
+}
