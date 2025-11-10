@@ -76,18 +76,25 @@ export const colors = {
 };
 
 // Tema para React Native Paper
-export const paperTheme = {
+import { MD3LightTheme, MD3Theme } from 'react-native-paper';
+
+export const paperTheme: MD3Theme = {
+  ...MD3LightTheme,
   colors: {
+    ...MD3LightTheme.colors,
     primary: colors.primary,
-    accent: colors.accent,
+    secondary: colors.secondary,
     background: colors.background,
     surface: colors.surface,
-    text: colors.text,
+    onSurface: colors.text,
+    onSurfaceDisabled: colors.disabled,
     error: colors.error,
-    disabled: colors.disabled,
-    placeholder: colors.placeholder,
-    backdrop: colors.overlay,
-    notification: colors.secondary,
+    outline: colors.border,
+    inversePrimary: colors.primaryLight,
+    inverseSurface: colors.primaryDark,
+    inverseOnSurface: colors.textLight,
+    surfaceVariant: colors.surfaceLight,
+    surfaceDisabled: colors.disabled,
   },
 };
 
