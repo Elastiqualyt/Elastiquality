@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import { ActivityIndicator, Dialog, HelperText, List, Portal, Text, TextInput } from 'react-native-paper';
 import { colors } from '../theme/colors';
 import {
@@ -149,20 +149,26 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
 
   return (
     <View style={[styles.container, style]}>
-      <TextInput
-        mode="outlined"
-        label={inputLabel}
-        value={displayValue}
-        editable={false}
-        onPressIn={handleOpenDialog}
-        onFocus={handleOpenDialog}
-        right={
-          displayValue
-            ? <TextInput.Icon icon="close" onPress={clearSelection} forceTextInputFocus={false} />
-            : undefined
-        }
-        style={styles.input}
-      />
+      <View style={styles.inputWrapper}>
+        <TextInput
+          mode="outlined"
+          label={inputLabel}
+          value={displayValue}
+          editable={false}
+          right={
+            displayValue
+              ? <TextInput.Icon icon="close" onPress={clearSelection} forceTextInputFocus={false} />
+              : undefined
+          }
+          style={styles.input}
+          pointerEvents="none"
+        />
+        <Pressable
+          style={StyleSheet.absoluteFill}
+          onPress={handleOpenDialog}
+          android_ripple={Platform.OS === 'android' ? { color: colors.overlay } : undefined}
+        />
+      </View>
 
       {helper ? (
         <HelperText type={helperType as 'error' | 'info'} visible>
@@ -236,6 +242,9 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
 const styles = StyleSheet.create({
   container: {
     gap: 12,
+  },
+  inputWrapper: {
+    position: 'relative',
   },
   input: {
     backgroundColor: colors.background,
