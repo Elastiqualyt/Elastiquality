@@ -32,6 +32,7 @@ import { ChatConversationScreen } from '../screens/chat/ChatConversationScreen';
 import { CheckoutStatusScreen } from '../screens/professional/CheckoutStatusScreen';
 import { TransactionHistoryScreen } from '../screens/professional/TransactionHistoryScreen';
 import { ProfileScreen } from '../screens/professional/ProfileScreen';
+import { ProfessionalDashboardScreen } from '../screens/professional/ProfessionalDashboardScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -179,6 +180,11 @@ const ProfessionalStack = () => (
       name="SendProposal"
       component={SendProposalScreen}
       options={{ title: 'Enviar Proposta' }}
+    />
+    <Stack.Screen
+      name="ProfessionalDashboard"
+      component={ProfessionalDashboardScreen}
+      options={{ title: 'Dashboard' }}
     />
     <Stack.Screen
       name="ManageProfile"

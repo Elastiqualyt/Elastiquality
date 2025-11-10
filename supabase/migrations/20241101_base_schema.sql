@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS public.professionals (
   review_count INTEGER DEFAULT 0,
   portfolio TEXT[] DEFAULT '{}',
   description TEXT,
+  avatar_url TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -245,6 +246,10 @@ BEGIN
       ON DELETE SET NULL;
   END IF;
 END $$;
+
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('avatar-images', 'avatar-images', true)
+ON CONFLICT (id) DO NOTHING;
 
 -- Políticas RLS para users
 CREATE POLICY "Users can view own profile" ON public.users

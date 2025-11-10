@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS public.professionals (
   review_count INTEGER DEFAULT 0,
   portfolio TEXT[] DEFAULT '{}',
   description TEXT,
+  avatar_url TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -551,6 +552,9 @@ ALTER TABLE public.pt_districts ADD COLUMN IF NOT EXISTS code TEXT;
 ALTER TABLE public.pt_municipalities ADD COLUMN IF NOT EXISTS code TEXT;
 ALTER TABLE public.pt_parishes ADD COLUMN IF NOT EXISTS code TEXT;
 
+ALTER TABLE IF EXISTS public.professionals
+  ADD COLUMN IF NOT EXISTS avatar_url TEXT;
+
 DO $$
 BEGIN
   IF NOT EXISTS (
@@ -563,6 +567,10 @@ BEGIN
       ON DELETE SET NULL;
   END IF;
 END $$;
+
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('avatar-images', 'avatar-images', true)
+ON CONFLICT (id) DO NOTHING;
 
 DO $$
 BEGIN

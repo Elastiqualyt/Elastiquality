@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import { ActivityIndicator, Card, List, Text } from 'react-native-paper';
+import { ActivityIndicator, Avatar, Card, Chip, List, Text } from 'react-native-paper';
 import { RouteProp } from '@react-navigation/native';
 import { colors } from '../../theme/colors';
 import { RatingStars } from '../../components/RatingStars';
 import { listProfessionalReviews, getProfessionalReviewSummary } from '../../services/reviews';
 import { useAuth } from '../../contexts/AuthContext';
+import { supabase } from '../../config/supabase';
 
 interface ProfileScreenRouteParams {
   professionalId?: string;
@@ -21,6 +22,12 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ route }) => {
   const professionalId = route.params?.professionalId ?? user?.id;
   const [loading, setLoading] = useState(true);
   const [summary, setSummary] = useState<{ average: number; count: number }>({ average: 0, count: 0 });
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [description, setDescription] = useState<string | null>(null);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [regions, setRegions] = useState<string[]>([]);
+  const [credits, setCredits] = useState<number>(0);
+  const [portfolio, setPortfolio] = useState<string[]>([]);
   const [reviews, setReviews] = useState<
     Array<{
       id: string;
@@ -39,10 +46,26 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ route }) => {
       }
       try {
         setLoading(true);
-        const [summaryResult, reviewResult] = await Promise.all([
+        const [{ data: professionalData, error: professionalError }, summaryResult, reviewResult] = await Promise.all([
+          supabase
+            .from('professionals')
+            .select('avatar_url, description, categories, regions, credits, portfolio')
+            .eq('id', professionalId)
+            .maybeSingle(),
           getProfessionalReviewSummary(professionalId),
           listProfessionalReviews(professionalId),
         ]);
+
+        if (professionalError) throw professionalError;
+
+        if (professionalData) {
+          setAvatarUrl(professionalData.avatar_url ?? null);
+          setDescription(professionalData.description ?? null);
+          setCategories(Array.isArray(professionalData.categories) ? professionalData.categories : []);
+          setRegions(Array.isArray(professionalData.regions) ? professionalData.regions : []);
+          setCredits(professionalData.credits ?? 0);
+          setPortfolio(Array.isArray(professionalData.portfolio) ? professionalData.portfolio : []);
+        }
 
         setSummary(summaryResult);
         setReviews(
@@ -77,14 +100,73 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ route }) => {
     <ScrollView contentContainerStyle={styles.container}>
       <Card style={styles.summaryCard}>
         <Card.Content style={styles.summaryContent}>
-          <Text style={styles.title}>{route.params?.professionalName || user?.name || 'Profissional'}</Text>
+          <View style={styles.headerRow}>
+            {avatarUrl ? (
+              <Avatar.Image size={80} source={{ uri: avatarUrl }} />
+            ) : (
+              <Avatar.Icon size={80} icon="account" />
+            )}
+            <View style={styles.headerText}>
+              <Text style={styles.title}>{route.params?.professionalName || user?.name || 'Profissional'}</Text>
+              <Text style={styles.creditsLabel}>Saldo atual: {credits} moedas</Text>
+            </View>
+          </View>
           <View style={styles.ratingRow}>
             <RatingStars rating={summary.average} size={30} />
             <Text style={styles.averageText}>{summary.average.toFixed(1)} / 5</Text>
           </View>
           <Text style={styles.totalReviews}>{summary.count} avaliações registradas</Text>
+          {description ? <Text style={styles.description}>{description}</Text> : null}
         </Card.Content>
       </Card>
+
+      <Card style={styles.infoCard}>
+        <Card.Content style={{ gap: 12 }}>
+          <Text style={styles.sectionTitle}>Categorias de atuação</Text>
+          <View style={styles.chipGroup}>
+            {categories.length === 0 ? (
+              <Text style={styles.emptyText}>Nenhuma categoria informada.</Text>
+            ) : (
+              categories.map((category) => (
+                <Chip key={category} mode="outlined" style={styles.infoChip}>
+                  {category}
+                </Chip>
+              ))
+            )}
+          </View>
+
+          <Text style={styles.sectionTitle}>Zonas de atendimento</Text>
+          <View style={styles.chipGroup}>
+            {regions.length === 0 ? (
+              <Text style={styles.emptyText}>Nenhuma região informada.</Text>
+            ) : (
+              regions.map((region) => (
+                <Chip key={region} mode="outlined" style={styles.infoChip}>
+                  {region}
+                </Chip>
+              ))
+            )}
+          </View>
+        </Card.Content>
+      </Card>
+
+      {portfolio.length > 0 ? (
+        <Card style={styles.infoCard}>
+          <Card.Content style={{ gap: 12 }}>
+            <Text style={styles.sectionTitle}>Portfólio</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.portfolioRow}>
+              {portfolio.map((item) => (
+                <Avatar.Image
+                  key={item}
+                  size={72}
+                  source={{ uri: item }}
+                  style={styles.portfolioImage}
+                />
+              ))}
+            </ScrollView>
+          </Card.Content>
+        </Card>
+      ) : null}
 
       <Card style={styles.reviewsCard}>
         <Card.Content>
@@ -128,10 +210,23 @@ const styles = StyleSheet.create({
   summaryContent: {
     gap: 12,
   },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  headerText: {
+    flex: 1,
+    gap: 4,
+  },
   title: {
     fontSize: 22,
     fontWeight: 'bold',
     color: colors.text,
+  },
+  creditsLabel: {
+    fontSize: 14,
+    color: colors.textSecondary,
   },
   ratingRow: {
     flexDirection: 'row',
@@ -146,6 +241,22 @@ const styles = StyleSheet.create({
   totalReviews: {
     fontSize: 14,
     color: colors.textSecondary,
+  },
+  description: {
+    fontSize: 14,
+    color: colors.text,
+  },
+  infoCard: {
+    borderRadius: 16,
+    elevation: 1,
+  },
+  chipGroup: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  infoChip: {
+    borderColor: colors.border,
   },
   reviewsCard: {
     borderRadius: 16,
@@ -175,6 +286,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: colors.textSecondary,
     marginLeft: 'auto',
+  },
+  portfolioRow: {
+    gap: 12,
+  },
+  portfolioImage: {
+    backgroundColor: colors.surfaceLight,
   },
   loaderContainer: {
     flex: 1,

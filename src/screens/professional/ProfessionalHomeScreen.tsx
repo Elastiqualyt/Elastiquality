@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, StyleSheet, FlatList, RefreshControl } from 'react-native';
-import { Text, Card, Chip, Button } from 'react-native-paper';
+import { Text, Card, Chip, Button, Avatar } from 'react-native-paper';
 import { useAuth } from '../../contexts/AuthContext';
 import { colors } from '../../theme/colors';
 import { Lead, Professional } from '../../types';
@@ -59,6 +59,7 @@ export const ProfessionalHomeScreen = ({ navigation }: any) => {
         reviewCount: professionalRow?.review_count ?? 0,
         portfolio: professionalRow?.portfolio ?? undefined,
         description: professionalRow?.description ?? undefined,
+        avatarUrl: professionalRow?.avatar_url ?? null,
       };
 
       setProfessional(combined);
@@ -148,10 +149,29 @@ export const ProfessionalHomeScreen = ({ navigation }: any) => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.welcomeText}>Olá, {user?.name}!</Text>
+        <View style={styles.headerTop}>
+          {professional?.avatarUrl ? (
+            <Avatar.Image size={64} source={{ uri: professional.avatarUrl }} />
+          ) : (
+            <Avatar.Icon size={64} icon="account" />
+          )}
+          <View style={styles.headerInfo}>
+            <Text style={styles.welcomeText}>Olá, {user?.name}!</Text>
+            <View style={styles.creditsContainer}>
+              <Text style={styles.creditsLabel}>Seus créditos:</Text>
+              <Text style={styles.creditsValue}>{professional?.credits || 0} moedas</Text>
+            </View>
+          </View>
+        </View>
         <View style={styles.creditsContainer}>
-          <Text style={styles.creditsLabel}>Seus créditos:</Text>
-          <Text style={styles.creditsValue}>{professional?.credits || 0} moedas</Text>
+          <Button
+            mode="outlined"
+            onPress={() => navigation.navigate('ProfessionalDashboard')}
+            style={styles.dashboardButton}
+            textColor={colors.textLight}
+          >
+            Ver Dashboard
+          </Button>
         </View>
         <Button
           mode="outlined"
@@ -215,16 +235,25 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: colors.professional,
   },
+  headerTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+    marginBottom: 16,
+  },
+  headerInfo: {
+    flex: 1,
+  },
   welcomeText: {
     fontSize: 24,
     fontWeight: 'bold',
     color: colors.textLight,
-    marginBottom: 16,
   },
   creditsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 12,
+    justifyContent: 'space-between',
   },
   creditsLabel: {
     fontSize: 16,
@@ -298,6 +327,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.textSecondary,
     textAlign: 'center',
+  },
+  dashboardButton: {
+    borderColor: colors.textLight,
   },
 });
 

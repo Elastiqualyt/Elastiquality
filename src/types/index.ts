@@ -28,6 +28,7 @@ export interface Professional extends User {
   reviewCount: number;
   portfolio?: string[];
   description?: string;
+  avatarUrl?: string | null;
 }
 
 export interface ServiceRequest {

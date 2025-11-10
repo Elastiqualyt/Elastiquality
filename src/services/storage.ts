@@ -4,6 +4,7 @@ import * as ImageManipulator from 'expo-image-manipulator';
 const CHAT_BUCKET = 'chat-uploads';
 const SERVICE_BUCKET = 'service-photos';
 const PORTFOLIO_BUCKET = 'portfolio-images';
+const AVATAR_BUCKET = 'avatar-images';
 
 interface UploadImageOptions {
   bucket: string;
@@ -128,6 +129,17 @@ export const uploadPortfolioImage = async (professionalId: string, fileUri: stri
     maxWidth: 1800,
     maxHeight: 1800,
     compress: 0.75,
+  });
+};
+
+export const uploadAvatarImage = async (professionalId: string, fileUri: string) => {
+  return uploadImageToBucket({
+    bucket: AVATAR_BUCKET,
+    fileUri,
+    pathPrefix: `professionals/${professionalId}`,
+    maxWidth: 600,
+    maxHeight: 600,
+    compress: 0.8,
   });
 };
 

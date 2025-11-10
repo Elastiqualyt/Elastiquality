@@ -1,13 +1,14 @@
 import React, { useCallback, useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
-import { Button, Card, Chip, HelperText, Text, TextInput } from 'react-native-paper';
+import { Alert, ScrollView, StyleSheet, View } from 'react-native';
+import { Avatar, Button, Card, Chip, HelperText, Text, TextInput } from 'react-native-paper';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../config/supabase';
 import { colors } from '../../theme/colors';
 import { ALL_SERVICES } from '../../constants/categories';
 import { ImagePicker, ImagePickerItem } from '../../components/ImagePicker';
-import { uploadPortfolioImage } from '../../services/storage';
+import { uploadAvatarImage, uploadPortfolioImage } from '../../services/storage';
 import { useFocusEffect } from '@react-navigation/native';
+import * as ImagePickerLib from 'expo-image-picker';
 
 const MAX_PORTFOLIO_ITEMS = 10;
 
@@ -22,6 +23,10 @@ export const ManageProfileScreen = ({ navigation }: any) => {
   const [portfolioItems, setPortfolioItems] = useState<ImagePickerItem[]>([]);
   const [credits, setCredits] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [newAvatarUri, setNewAvatarUri] = useState<string | null>(null);
+  const [removeAvatar, setRemoveAvatar] = useState(false);
 
   const loadProfile = useCallback(async () => {
     if (!user?.id) return;
@@ -30,7 +35,7 @@ export const ManageProfileScreen = ({ navigation }: any) => {
       setLoading(true);
       const { data, error: fetchError } = await supabase
         .from('professionals')
-        .select('categories, regions, description, portfolio, credits')
+        .select('categories, regions, description, portfolio, credits, avatar_url')
         .eq('id', user.id)
         .maybeSingle();
 
@@ -45,7 +50,47 @@ export const ManageProfileScreen = ({ navigation }: any) => {
         const portfolioList: string[] = Array.isArray(data.portfolio) ? data.portfolio : [];
         setPortfolioItems(portfolioList.map((uri) => ({ uri, local: false })));
         setCredits(data.credits ?? 0);
+        setAvatarUrl(data.avatar_url ?? null);
+        setAvatarPreview(data.avatar_url ?? null);
+        setNewAvatarUri(null);
+        setRemoveAvatar(false);
       }
+  const handleSelectAvatar = async () => {
+    const { status } = await ImagePickerLib.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert(
+        'Permissão necessária',
+        'Precisa conceder acesso às fotos para escolher um avatar. Verifique as permissões nas definições do dispositivo.',
+      );
+      return;
+    }
+
+    const result = await ImagePickerLib.launchImageLibraryAsync({
+      mediaTypes: ImagePickerLib.MediaTypeOptions.Images,
+      allowsMultipleSelection: false,
+      quality: 1,
+    });
+
+    if (result.canceled) {
+      return;
+    }
+
+    const asset = result.assets?.[0];
+    if (asset?.uri) {
+      setAvatarPreview(asset.uri);
+      setNewAvatarUri(asset.uri);
+      setRemoveAvatar(false);
+    }
+  };
+
+  const handleRemoveAvatar = () => {
+    setAvatarPreview(null);
+    setNewAvatarUri(null);
+    if (avatarUrl) {
+      setRemoveAvatar(true);
+    }
+  };
+
       setError(null);
     } catch (err: any) {
       console.error('Erro ao carregar perfil profissional:', err);
@@ -92,6 +137,16 @@ export const ManageProfileScreen = ({ navigation }: any) => {
       }
 
       const finalPortfolio = [...existingPortfolio, ...uploadedImages];
+      let finalAvatarUrl = avatarUrl ?? null;
+
+      if (removeAvatar) {
+        finalAvatarUrl = null;
+      }
+
+      if (newAvatarUri) {
+        const avatarUpload = await uploadAvatarImage(user.id, newAvatarUri);
+        finalAvatarUrl = avatarUpload.publicUrl;
+      }
 
       const { error: updateError } = await supabase
         .from('professionals')
@@ -100,6 +155,7 @@ export const ManageProfileScreen = ({ navigation }: any) => {
           regions: selectedRegions,
           description: description || null,
           portfolio: finalPortfolio,
+          avatar_url: finalAvatarUrl,
           updated_at: new Date().toISOString(),
         })
         .eq('id', user.id);
@@ -107,6 +163,10 @@ export const ManageProfileScreen = ({ navigation }: any) => {
       if (updateError) throw updateError;
 
       setPortfolioItems(finalPortfolio.map((uri) => ({ uri, local: false })));
+      setAvatarUrl(finalAvatarUrl);
+      setAvatarPreview(finalAvatarUrl);
+      setNewAvatarUri(null);
+      setRemoveAvatar(false);
       alert('Descrição e portfólio atualizados com sucesso!');
     } catch (err: any) {
       console.error('Erro ao atualizar perfil profissional:', err);
@@ -126,6 +186,29 @@ export const ManageProfileScreen = ({ navigation }: any) => {
             <Text style={styles.loading}>A carregar dados...</Text>
           ) : (
             <>
+              <View style={styles.avatarSection}>
+                {avatarPreview ? (
+                  <Avatar.Image size={96} source={{ uri: avatarPreview }} />
+                ) : (
+                  <Avatar.Icon size={96} icon="account" />
+                )}
+                <View style={styles.avatarActions}>
+                  <Button
+                    mode="outlined"
+                    onPress={handleSelectAvatar}
+                    textColor={colors.professional}
+                    style={styles.sectionButton}
+                  >
+                    Alterar avatar
+                  </Button>
+                  {avatarPreview || avatarUrl ? (
+                    <Button mode="text" onPress={handleRemoveAvatar} textColor={colors.error}>
+                      Remover avatar
+                    </Button>
+                  ) : null}
+                </View>
+              </View>
+
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Dados pessoais</Text>
                 <Text style={styles.sectionSubtitle}>
@@ -299,6 +382,14 @@ const styles = StyleSheet.create({
   sectionSubtitle: {
     fontSize: 14,
     color: colors.textSecondary,
+  },
+  avatarSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  avatarActions: {
+    gap: 8,
   },
   chipGroup: {
     flexDirection: 'row',
