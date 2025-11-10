@@ -1,22 +1,28 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, Image } from 'react-native';
-import { TextInput, Button, Text, Card, RadioButton } from 'react-native-paper';
+import { TextInput, Button, Text, Card, RadioButton, HelperText } from 'react-native-paper';
 import { useAuth } from '../contexts/AuthContext';
 import { colors } from '../theme/colors';
 import { UserType } from '../types';
+import { LocationPicker } from '../components/LocationPicker';
+import { LocationSelection, formatLocationSelection } from '../services/locations';
 
 export const RegisterScreen = ({ navigation }: any) => {
-  const [name, setName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [userType, setUserType] = useState<UserType>('client');
+  const [phone, setPhone] = useState('');
+  const [locationSelection, setLocationSelection] = useState<LocationSelection>({});
+  const [locationError, setLocationError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const { signUp } = useAuth();
 
   const handleRegister = async () => {
-    if (!name || !email || !password || !confirmPassword) {
+    if (!firstName.trim() || !lastName.trim() || !email || !password || !confirmPassword) {
       setError('Por favor, preencha todos os campos');
       return;
     }
@@ -31,11 +37,56 @@ export const RegisterScreen = ({ navigation }: any) => {
       return;
     }
 
+    if (phone.trim().length > 0 && !/^\d{9}$/.test(phone.trim())) {
+      setError('O telemóvel deve conter 9 dígitos numéricos');
+      return;
+    }
+
+    let locationPayload:
+      | {
+          districtId: string;
+          municipalityId: string;
+          parishId: string;
+          label: string;
+        }
+      | undefined;
+
+    if (userType === 'client') {
+      if (!locationSelection.parishId || !locationSelection.municipalityId || !locationSelection.districtId) {
+        setLocationError('Selecione distrito, concelho e freguesia.');
+        setError('Informe uma localização válida.');
+        return;
+      }
+
+      const label = formatLocationSelection(locationSelection);
+      if (!label) {
+        setLocationError('Seleção inválida. Escolha novamente a freguesia.');
+        setError('Informe uma localização válida.');
+        return;
+      }
+
+      locationPayload = {
+        districtId: locationSelection.districtId,
+        municipalityId: locationSelection.municipalityId,
+        parishId: locationSelection.parishId,
+        label,
+      };
+    }
+
     setLoading(true);
     setError('');
+    setLocationError(null);
 
     try {
-      await signUp(email, password, name, userType);
+      await signUp({
+        email: email.trim().toLowerCase(),
+        password,
+        firstName,
+        lastName,
+        phone: phone.trim(),
+        userType,
+        location: locationPayload,
+      });
       navigation.navigate('Login');
     } catch (err: any) {
       setError(err.message || 'Erro ao criar conta');
@@ -63,9 +114,17 @@ export const RegisterScreen = ({ navigation }: any) => {
             <Text style={styles.cardTitle}>Criar Conta</Text>
 
             <TextInput
-              label="Nome completo"
-              value={name}
-              onChangeText={setName}
+              label="Nome"
+              value={firstName}
+              onChangeText={setFirstName}
+              mode="outlined"
+              style={styles.input}
+            />
+
+            <TextInput
+              label="Apelido"
+              value={lastName}
+              onChangeText={setLastName}
               mode="outlined"
               style={styles.input}
             />
@@ -97,6 +156,33 @@ export const RegisterScreen = ({ navigation }: any) => {
               secureTextEntry
               style={styles.input}
             />
+
+            <TextInput
+              label="Telemóvel (9 dígitos)"
+              value={phone}
+              onChangeText={setPhone}
+              mode="outlined"
+              keyboardType="phone-pad"
+              style={styles.input}
+              maxLength={9}
+            />
+
+            {userType === 'client' ? (
+              <View style={styles.locationSection}>
+                <Text style={styles.label}>Localização</Text>
+                <LocationPicker
+                  value={locationSelection}
+                  onChange={(selection) => {
+                    setLocationSelection(selection);
+                    setLocationError(null);
+                  }}
+                  requiredLevel="parish"
+                  caption="Selecione distrito, concelho e freguesia."
+                  error={locationError || undefined}
+                />
+                {locationError ? <HelperText type="error">{locationError}</HelperText> : null}
+              </View>
+            ) : null}
 
             <Text style={styles.label}>Tipo de conta:</Text>
             <RadioButton.Group onValueChange={value => setUserType(value as UserType)} value={userType}>
@@ -167,6 +253,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 8,
     color: colors.text,
+  },
+  locationSection: {
+    marginBottom: 16,
+    gap: 8,
   },
   radioContainer: {
     marginBottom: 16,

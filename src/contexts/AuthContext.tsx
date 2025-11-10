@@ -4,12 +4,27 @@ import { User, UserType } from '../types';
 import { Session } from '@supabase/supabase-js';
 import { registerForPushNotificationsAsync } from '../services/notifications';
 
+interface SignUpInput {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  phone?: string;
+  userType: UserType;
+  location?: {
+    districtId: string;
+    municipalityId: string;
+    parishId: string;
+    label: string;
+  };
+}
+
 interface AuthContextData {
   user: User | null;
   session: Session | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, name: string, userType: UserType) => Promise<void>;
+  signUp: (input: SignUpInput) => Promise<void>;
   signOut: () => Promise<void>;
   refreshUser: () => Promise<void>;
   updateUserContext: (updates: Partial<User>) => void;
@@ -74,7 +89,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (error) throw error;
   };
 
-  const signUp = async (email: string, password: string, name: string, userType: UserType) => {
+  const signUp = async ({
+    email,
+    password,
+    firstName,
+    lastName,
+    phone,
+    userType,
+    location,
+  }: SignUpInput) => {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -84,13 +107,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     if (data.user) {
       const now = new Date().toISOString();
+      const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
 
       // Criar perfil do usuário
       const { error: profileError } = await supabase.from('users').insert({
         id: data.user.id,
         email,
-        name,
+        name: fullName,
+        first_name: firstName.trim(),
+        last_name: lastName.trim(),
         user_type: userType,
+        phone: phone?.trim() || null,
+        district_id: location?.districtId ?? null,
+        municipality_id: location?.municipalityId ?? null,
+        parish_id: location?.parishId ?? null,
+        location_label: location?.label ?? null,
         created_at: now,
         updated_at: now,
       });

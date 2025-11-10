@@ -4,8 +4,14 @@ export interface User {
   id: string;
   email: string;
   name: string;
+  firstName?: string;
+  lastName?: string;
   phone?: string;
   userType: UserType;
+  districtId?: string | null;
+  municipalityId?: string | null;
+  parishId?: string | null;
+  locationLabel?: string | null;
   createdAt: string;
 }
 
