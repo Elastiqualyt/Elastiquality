@@ -52,6 +52,7 @@ export const ProfessionalHomeScreen = ({ navigation }: any) => {
         phone: userRow.phone ?? undefined,
         userType: userRow.user_type || 'professional',
         createdAt: userRow.created_at,
+        avatarUrl: userRow.avatar_url ?? undefined,
         categories: professionalRow?.categories || [],
         regions: professionalRow?.regions || [],
         credits: professionalRow?.credits ?? 0,
@@ -157,47 +158,44 @@ export const ProfessionalHomeScreen = ({ navigation }: any) => {
           )}
           <View style={styles.headerInfo}>
             <Text style={styles.welcomeText}>Olá, {user?.name}!</Text>
-            <View style={styles.creditsContainer}>
-              <Text style={styles.creditsLabel}>Seus créditos:</Text>
-              <Text style={styles.creditsValue}>{professional?.credits || 0} moedas</Text>
-            </View>
+            <Text style={styles.creditsSummary}>Saldo atual: {professional?.credits || 0} moedas</Text>
           </View>
         </View>
-        <View style={styles.creditsContainer}>
+        <View style={styles.headerButtons}>
           <Button
             mode="outlined"
             onPress={() => navigation.navigate('ProfessionalDashboard')}
-            style={styles.dashboardButton}
+            style={styles.headerButton}
             textColor={colors.textLight}
           >
-            Ver Dashboard
+            Ver dashboard
+          </Button>
+          <Button
+            mode="outlined"
+            onPress={() => navigation.navigate('BuyCredits')}
+            style={styles.headerButton}
+            textColor={colors.textLight}
+          >
+            Comprar créditos
+          </Button>
+          <Button
+            mode="outlined"
+            onPress={() => navigation.navigate('EditProfile')}
+            style={styles.headerButton}
+            textColor={colors.textLight}
+          >
+            Editar dados pessoais
+          </Button>
+          <Button
+            mode="contained"
+            onPress={() => navigation.navigate('ManageProfile')}
+            style={styles.manageButton}
+            buttonColor={colors.textLight}
+            textColor={colors.professional}
+          >
+            Gerir perfil
           </Button>
         </View>
-        <Button
-          mode="outlined"
-          onPress={() => navigation.navigate('BuyCredits')}
-          style={styles.buyButton}
-          textColor={colors.textLight}
-        >
-          Comprar Créditos
-        </Button>
-        <Button
-          mode="outlined"
-          onPress={() => navigation.navigate('EditProfile')}
-          style={styles.editProfileButton}
-          textColor={colors.textLight}
-        >
-          Editar dados pessoais
-        </Button>
-        <Button
-          mode="contained"
-          onPress={() => navigation.navigate('ManageProfile')}
-          style={styles.manageButton}
-          buttonColor={colors.textLight}
-          textColor={colors.professional}
-        >
-          Gerir Perfil
-        </Button>
       </View>
 
       <View style={styles.content}>
@@ -249,31 +247,21 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: colors.textLight,
   },
-  creditsContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-    justifyContent: 'space-between',
-  },
-  creditsLabel: {
+  creditsSummary: {
     fontSize: 16,
     color: colors.textLight,
-    marginRight: 8,
+    marginTop: 4,
   },
-  creditsValue: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: colors.textLight,
+  headerButtons: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
   },
-  buyButton: {
+  headerButton: {
     borderColor: colors.textLight,
-  },
-  editProfileButton: {
-    borderColor: colors.textLight,
-    marginTop: 8,
   },
   manageButton: {
-    marginTop: 8,
+    borderRadius: 8,
   },
   content: {
     flex: 1,
@@ -327,9 +315,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.textSecondary,
     textAlign: 'center',
-  },
-  dashboardButton: {
-    borderColor: colors.textLight,
   },
 });
 

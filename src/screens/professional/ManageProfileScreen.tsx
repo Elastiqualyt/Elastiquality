@@ -12,8 +12,29 @@ import * as ImagePickerLib from 'expo-image-picker';
 
 const MAX_PORTFOLIO_ITEMS = 10;
 
+const CONFIRM_LOGOUT_MESSAGE =
+  'Tem a certeza de que pretende terminar sessão? Poderá voltar a entrar quando quiser.';
+
 export const ManageProfileScreen = ({ navigation }: any) => {
-  const { user, updateUserContext } = useAuth();
+  const { user, updateUserContext, signOut } = useAuth();
+  const handleLogout = () => {
+    Alert.alert('Terminar sessão', CONFIRM_LOGOUT_MESSAGE, [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Terminar sessão',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await signOut();
+          } catch (err) {
+            console.error('Erro ao terminar sessão:', err);
+            Alert.alert('Erro', 'Não foi possível terminar a sessão. Tente novamente.');
+          }
+        },
+      },
+    ]);
+  };
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -349,6 +370,16 @@ export const ManageProfileScreen = ({ navigation }: any) => {
                   Guardar descrição e portfólio
                 </Button>
               </View>
+
+              <Button
+                mode="outlined"
+                icon="logout"
+                onPress={handleLogout}
+                textColor={colors.error}
+                style={styles.logoutButton}
+              >
+                Terminar sessão
+              </Button>
             </>
           )}
         </Card.Content>
@@ -437,6 +468,11 @@ const styles = StyleSheet.create({
   sectionButton: {
     alignSelf: 'flex-start',
     borderRadius: 12,
+  },
+  logoutButton: {
+    marginTop: 24,
+    borderRadius: 12,
+    borderColor: colors.error,
   },
 });
 
